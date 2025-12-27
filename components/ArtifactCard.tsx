@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Artifact } from '../types';
 import { ThinkingIcon } from './Icons';
 
@@ -23,10 +23,13 @@ const ArtifactCard = React.memo(({
     const [displayHtml, setDisplayHtml] = useState(artifact.html);
     const [isIframeLoaded, setIsIframeLoaded] = useState(false);
     
+    // Delays the actual mounting of the iframe into the DOM to allow card animations to finish first
+    const [renderDelayComplete, setRenderDelayComplete] = useState(false);
+    
     // State for click animation
     const [isClicked, setIsClicked] = useState(false);
 
-    // Update display HTML less frequently to avoid iframe flashing
+    // Update display HTML less frequently to avoid iframe flashing during streaming
     useEffect(() => {
         const timeout = setTimeout(() => {
             setDisplayHtml(artifact.html);
@@ -41,9 +44,17 @@ const ArtifactCard = React.memo(({
         }
     }, [artifact.html]);
 
-    // Reset iframe loaded state when ID changes
+    // Reset states when ID changes
     useEffect(() => {
         setIsIframeLoaded(false);
+        setRenderDelayComplete(false);
+        
+        // Wait for card entrance animation (approx 600ms in CSS) before mounting iframe
+        const timer = setTimeout(() => {
+            setRenderDelayComplete(true);
+        }, 600);
+        
+        return () => clearTimeout(timer);
     }, [artifact.id]);
 
     const handleCardClick = (e: React.MouseEvent) => {
@@ -56,9 +67,31 @@ const ArtifactCard = React.memo(({
     };
 
     const isBlurring = artifact.status === 'streaming';
-    // Show iframe when we have content and aren't purely in "thinking" mode, 
-    // but keep overlay until fully complete or substantial content exists
-    const showIframe = displayHtml.length > 50; 
+    
+    // Show iframe only when:
+    // 1. The visual animation delay is complete (prevents jank)
+    // 2. We have substantial content (> 50 chars)
+    const showIframe = renderDelayComplete && displayHtml.length > 50; 
+
+    // Wrap content with basic HTML structure for better responsive rendering if missing
+    const wrappedHtml = useMemo(() => {
+        if (!displayHtml) return '';
+        if (displayHtml.includes('<!DOCTYPE html>') || displayHtml.includes('<html')) return displayHtml;
+        
+        return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { margin: 0; min-height: 100vh; font-family: system-ui, -apple-system, sans-serif; }
+</style>
+</head>
+<body>
+${displayHtml}
+</body>
+</html>`;
+    }, [displayHtml]);
 
     return (
         <div 
@@ -86,7 +119,7 @@ const ArtifactCard = React.memo(({
                 
                 {showIframe && (
                     <iframe 
-                        srcDoc={displayHtml} 
+                        srcDoc={wrappedHtml} 
                         title={artifact.id} 
                         sandbox="allow-scripts allow-forms allow-modals allow-popups allow-presentation allow-same-origin"
                         className={`artifact-iframe ${(!isBlurring || displayHtml.length > 500) ? 'loaded' : ''}`}

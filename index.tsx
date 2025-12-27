@@ -6,15 +6,14 @@
 //Vibe coded by ammaar@google.com
 
 import { GoogleGenAI } from '@google/genai';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { Artifact, Session, ComponentVariation, LayoutOption } from './types';
 import { INITIAL_PLACEHOLDERS } from './constants';
 import { generateId } from './utils';
 
-import DottedGlowBackground from './components/DottedGlowBackground';
-import ArtifactCard from './components/ArtifactCard';
+import ConstellationBackground from './components/ConstellationBackground';
 import SideDrawer from './components/SideDrawer';
 import Toast from './components/Toast';
 import { 
@@ -29,6 +28,9 @@ import {
     ShareIcon
 } from './components/Icons';
 
+// Lazy load the heavy ArtifactCard component
+const ArtifactCard = lazy(() => import('./components/ArtifactCard'));
+
 // --- Network Status Component ---
 const NetworkStatus = ({ isBusy }: { isBusy: boolean }) => {
     return (
@@ -41,6 +43,20 @@ const NetworkStatus = ({ isBusy }: { isBusy: boolean }) => {
         </div>
     );
 };
+
+// Skeleton loader for lazy loaded cards
+const ArtifactSkeleton = () => (
+    <div className="artifact-card skeleton">
+        <div className="artifact-header">
+            <div className="skeleton-tag"></div>
+        </div>
+        <div className="artifact-card-inner skeleton-bg">
+            <div className="skeleton-loader">
+                <ThinkingIcon />
+            </div>
+        </div>
+    </div>
+);
 
 function App() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -557,12 +573,8 @@ Return ONLY RAW HTML. No markdown fences.
         </SideDrawer>
 
         <div className="immersive-app">
-            <DottedGlowBackground 
-                gap={24} 
-                radius={1.5} 
-                color="rgba(255, 255, 255, 0.02)" 
-                glowColor="rgba(255, 255, 255, 0.15)" 
-                speedScale={0.5} 
+            <ConstellationBackground 
+                opacity={0.8}
             />
 
             <div className={`stage-container ${focusedArtifactIndex !== null ? 'mode-focus' : 'mode-split'}`}>
@@ -589,12 +601,13 @@ Return ONLY RAW HTML. No markdown fences.
                                     const isFocused = focusedArtifactIndex === aIndex;
                                     
                                     return (
-                                        <ArtifactCard 
-                                            key={artifact.id}
-                                            artifact={artifact}
-                                            isFocused={isFocused}
-                                            onClick={() => setFocusedArtifactIndex(aIndex)}
-                                        />
+                                        <Suspense key={artifact.id} fallback={<ArtifactSkeleton />}>
+                                            <ArtifactCard 
+                                                artifact={artifact}
+                                                isFocused={isFocused}
+                                                onClick={() => setFocusedArtifactIndex(aIndex)}
+                                            />
+                                        </Suspense>
                                     );
                                 })}
                             </div>
