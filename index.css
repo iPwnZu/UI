@@ -213,31 +213,38 @@ html, body {
     position: absolute;
     width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center;
+    /* Smoother, longer transition with a high-quality easing curve */
     transition: 
-        transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), 
-        opacity 0.7s ease,
-        filter 0.7s ease;
+        transform 0.9s cubic-bezier(0.19, 1, 0.22, 1), 
+        opacity 0.9s cubic-bezier(0.19, 1, 0.22, 1),
+        filter 0.9s cubic-bezier(0.19, 1, 0.22, 1);
     transform-style: preserve-3d;
+    will-change: transform, opacity, filter;
 }
 
 .session-group.active-session {
-    transform: translateX(0) scale(1);
+    transform: translateX(0) scale(1) translateZ(0);
     opacity: 1;
+    filter: blur(0);
     z-index: 10;
     pointer-events: auto;
 }
 
 .session-group.past-session {
-    transform: translateX(-120%) translateZ(-300px);
+    /* Add slight rotation and scale down for depth */
+    transform: translateX(-80%) scale(0.85) translateZ(-100px) rotateY(15deg);
     opacity: 0;
-    z-index: 5;
+    filter: blur(10px);
+    z-index: 0;
     pointer-events: none;
 }
 
 .session-group.future-session {
-    transform: translateX(120%) translateZ(-300px);
+    /* Add slight rotation and scale down for depth */
+    transform: translateX(80%) scale(0.85) translateZ(-100px) rotateY(-15deg);
     opacity: 0;
-    z-index: 5;
+    filter: blur(10px);
+    z-index: 0;
     pointer-events: none;
 }
 
@@ -332,12 +339,12 @@ html, body {
 }
 
 .artifact-card:hover {
-    border-color: rgba(179, 157, 219, 0.5);
-    transform: translateY(-4px) scale(1.03);
+    border-color: rgba(179, 157, 219, 0.9);
+    transform: translateY(-6px) scale(1.04);
     box-shadow: 
-        0 20px 40px -10px rgba(0,0,0,0.7),
-        0 0 30px rgba(126, 87, 194, 0.25);
-    z-index: 2;
+        0 30px 60px -12px rgba(0, 0, 0, 0.9),
+        0 0 50px -10px rgba(126, 87, 194, 0.6);
+    z-index: 20;
 }
 
 .artifact-card-inner {

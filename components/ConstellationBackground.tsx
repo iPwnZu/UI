@@ -132,15 +132,22 @@ export default function ConstellationBackground({
             const currentX = this.startStar.x + (dx * (this.progress / 100));
             const currentY = this.startStar.y + (dy * (this.progress / 100));
 
-            const alpha = 0.15 * (this.progress / 100);
+            // Significantly reduced alpha for "barely visible" look
+            const alpha = 0.08 * (this.progress / 100);
             
-            ctx.strokeStyle = `rgba(180, 100, 255, ${alpha})`; // Deep purple glow
-            ctx.lineWidth = 0.8;
-            ctx.shadowBlur = 0; // Reset shadow for lines to keep performance high
+            ctx.strokeStyle = `rgba(200, 200, 255, ${alpha})`; 
+            ctx.lineWidth = 0.4; // Thinner lines
+            
+            // Soft glow
+            ctx.shadowBlur = 2; 
+            ctx.shadowColor = `rgba(220, 220, 255, ${alpha * 0.5})`;
+            
             ctx.beginPath();
             ctx.moveTo(this.startStar.x, this.startStar.y);
             ctx.lineTo(currentX, currentY);
             ctx.stroke();
+            
+            ctx.shadowBlur = 0;
         }
     }
 
