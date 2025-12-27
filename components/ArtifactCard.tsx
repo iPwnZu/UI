@@ -107,12 +107,12 @@ ${displayHtml}
                         <div className="generating-loader">
                              <ThinkingIcon />
                              <span className="generating-text">
-                                 SOCKET: PŘÍJEM DAT... <span style={{ opacity: 0.5, fontSize: '0.8em' }}>TCP_NODELAY</span>
+                                 PŘIJÍMÁM DATA <span style={{ opacity: 0.5, fontSize: '0.8em', marginLeft: '4px' }}>●</span>
                              </span>
                         </div>
                         <div className="scanline"></div>
                         <pre ref={codeRef} className="code-stream-preview">
-                            {artifact.html.slice(-1000) || '// Inicializuji handshake...'}
+                            {artifact.html.slice(-1000) || '// Inicializuji spojení...'}
                         </pre>
                     </div>
                 )}

@@ -60,30 +60,43 @@ export default function ConstellationBackground({
     class Star {
         x: number;
         y: number;
-        size: number;
-        brightness: number;
+        baseSize: number;
+        phase: number;
         flickerSpeed: number;
         
         constructor(w: number, h: number, x?: number, y?: number) {
             this.x = x ?? Math.random() * w;
             this.y = y ?? Math.random() * h;
-            this.size = Math.random() * 1.5 + 0.5;
-            this.brightness = Math.random();
-            this.flickerSpeed = 0.02 + Math.random() * 0.05;
+            this.baseSize = Math.random() * 1.5 + 0.5;
+            // Random phase so stars don't twinkle in sync
+            this.phase = Math.random() * Math.PI * 2;
+            // Speed of the sine wave oscillation - Slower for smoother effect
+            this.flickerSpeed = 0.2 + Math.random() * 0.6;
         }
 
-        update() {
-            this.brightness += this.flickerSpeed;
-            if (this.brightness > 1 || this.brightness < 0.2) {
-                this.flickerSpeed *= -1;
-            }
-        }
+        draw(ctx: CanvasRenderingContext2D, t: number) {
+            // Calculate smooth sine wave based on global time and individual speed/phase
+            const sineValue = Math.sin(t * this.flickerSpeed + this.phase);
+            
+            // Map sine (-1 to 1) to a tighter opacity range (e.g., 0.5 to 0.9)
+            // This prevents stars from disappearing completely or flickering too harshly
+            const alpha = 0.5 + ((sineValue + 1) / 2) * 0.4;
+            
+            // Subtle size pulsation linked to brightness - reduced intensity
+            const currentSize = this.baseSize * (0.95 + ((sineValue + 1) / 2) * 0.1);
 
-        draw(ctx: CanvasRenderingContext2D) {
-            ctx.fillStyle = `rgba(200, 200, 255, ${Math.abs(this.brightness)})`;
+            ctx.fillStyle = `rgba(220, 220, 255, ${alpha})`;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Optional: Add a very faint glow to brighter stars
+            if (alpha > 0.8) {
+                ctx.shadowBlur = 3;
+                ctx.shadowColor = `rgba(200, 200, 255, ${alpha * 0.4})`;
+            } else {
+                ctx.shadowBlur = 0;
+            }
         }
     }
 
@@ -123,6 +136,7 @@ export default function ConstellationBackground({
             
             ctx.strokeStyle = `rgba(180, 100, 255, ${alpha})`; // Deep purple glow
             ctx.lineWidth = 0.8;
+            ctx.shadowBlur = 0; // Reset shadow for lines to keep performance high
             ctx.beginPath();
             ctx.moveTo(this.startStar.x, this.startStar.y);
             ctx.lineTo(currentX, currentY);
@@ -187,24 +201,20 @@ export default function ConstellationBackground({
       const { width, height } = container.getBoundingClientRect();
       ctx.clearRect(0, 0, width, height);
       
-      // Drift effect
-      time += 0.05;
-      ctx.save();
-      // Subtle rotation/pan for the whole universe
-      // ctx.translate(width/2, height/2);
-      // ctx.rotate(time * 0.0002);
-      // ctx.translate(-width/2, -height/2);
+      // Update global time for simulation - Slowed down for smoother animation
+      time += 0.025;
 
+      ctx.save();
+      
       // Draw Roots first (behind stars)
       roots.forEach(r => {
           r.update();
           r.draw(ctx);
       });
 
-      // Draw Stars
+      // Draw Stars with time parameter for animation
       stars.forEach(s => {
-          s.update();
-          s.draw(ctx);
+          s.draw(ctx, time);
       });
       
       ctx.restore();
@@ -220,10 +230,21 @@ export default function ConstellationBackground({
       window.removeEventListener("resize", initSimulation);
       ro.disconnect();
     };
-  }, [opacity]);
+  }, []);
 
   return (
-    <div ref={containerRef} className={className} style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+    <div 
+        ref={containerRef} 
+        className={className} 
+        style={{ 
+            position: "absolute", 
+            inset: 0, 
+            zIndex: 0, 
+            pointerEvents: 'none',
+            opacity: opacity,
+            transition: 'opacity 1.2s cubic-bezier(0.2, 0.8, 0.2, 1)' 
+        }}
+    >
       <canvas ref={canvasRef} style={{ display: "block" }} />
     </div>
   );

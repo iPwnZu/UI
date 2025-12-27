@@ -4,15 +4,16 @@
     --app-bg: #1a0b2e; /* Deep purple background base */
     --stage-bg: #2d1b4e; 
     --text-primary: #ffffff;
-    --text-secondary: #b39ddb; /* Light purple text */
-    --accent-color: #d1c4e9;
+    --text-secondary: #d1c4e9; /* Light purple text */
+    --accent-color: #e1bee7;
     --accent-bg: #4527a0;
     
     --input-bg: rgba(45, 27, 78, 0.6); /* Semi-transparent deep purple */
     --border-color: #4a148c;
     --glass-border: rgba(179, 157, 219, 0.15);
 
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    /* Changed to Cormorant Garamond for softer, cursive feel */
+    --font-sans: 'Cormorant Garamond', serif;
     --font-mono: 'Roboto Mono', monospace;
 }
 
@@ -24,6 +25,8 @@ html, body {
     background: radial-gradient(circle at 50% 0%, #311b92 0%, #1a0b2e 60%, #000000 100%);
     color: var(--text-primary);
     overflow: hidden; /* Prevent window scrolling, everything is in the stage */
+    font-weight: 400; /* Default weight is lighter */
+    font-size: 18px; /* Slightly larger base size for readability of serif */
 }
 
 #root {
@@ -52,9 +55,10 @@ html, body {
     right: 24px;
     z-index: 101; /* Above input and cards, but below drawer (200) */
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 1rem;
+    font-style: italic;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 400;
     opacity: 0.5;
     transition: all 0.2s ease;
     padding: 6px 12px;
@@ -139,22 +143,24 @@ html, body {
 
 .empty-content h1 { 
     color: var(--text-primary); 
-    font-weight: 800; 
-    letter-spacing: -0.05em; 
-    font-size: 6rem;
+    font-weight: 300; /* Lighter weight */
+    font-style: italic; /* Cursive feel */
+    letter-spacing: -0.02em; 
+    font-size: 7rem; /* Larger for display font */
     margin: 0;
-    background: linear-gradient(to bottom right, #e1bee7, #7e57c2);
+    background: linear-gradient(to bottom right, #e1bee7, #9575cd);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     opacity: 0;
     animation: dramaticEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     animation-delay: 0.2s;
-    text-shadow: 0 10px 30px rgba(126, 87, 194, 0.3);
+    text-shadow: 0 0 40px rgba(126, 87, 194, 0.4);
     line-height: 1;
 }
 
 .empty-content p {
-    font-size: 1.4rem;
+    font-size: 1.8rem;
+    font-style: italic;
     max-width: 600px;
     line-height: 1.4;
     margin: 0;
@@ -162,6 +168,7 @@ html, body {
     color: var(--text-secondary);
     animation: dramaticEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     animation-delay: 0.5s;
+    font-weight: 300;
 }
 
 .surprise-button {
@@ -169,10 +176,12 @@ html, body {
     background: rgba(126, 87, 194, 0.2);
     border: 1px solid rgba(179, 157, 219, 0.3);
     color: #fff;
-    padding: 12px 24px;
+    padding: 12px 28px;
     border-radius: 99px;
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 1.2rem;
+    font-family: var(--font-sans);
+    font-style: italic;
+    font-weight: 400;
     cursor: pointer;
     display: flex; align-items: center; gap: 8px;
     opacity: 0;
@@ -308,13 +317,17 @@ html, body {
     border-bottom: 1px solid var(--border-color);
     background: rgba(40, 20, 70, 0.2);
     display: flex; justify-content: center;
-    font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;
+    font-size: 1rem; 
+    letter-spacing: 0.05em; 
+    /* removed uppercase for softer look */
+    font-style: italic;
+    font-weight: 500;
     color: var(--text-secondary);
     transition: opacity 0.3s;
 }
 .artifact-style-tag {
     background: rgba(126, 87, 194, 0.1);
-    padding: 4px 8px; border-radius: 4px;
+    padding: 4px 10px; border-radius: 99px; /* Softer radius */
     border: 1px solid rgba(126, 87, 194, 0.2);
 }
 
@@ -356,10 +369,11 @@ html, body {
 
 /* === Focus Mode Styles === */
 .stage-container.mode-focus .artifact-card {
-    opacity: 0.2; /* Visible but dimmed */
+    opacity: 0.15; /* Even lower opacity for better focus */
     pointer-events: none;
-    transform: scale(0.95);
-    filter: grayscale(1);
+    transform: scale(0.9);
+    filter: grayscale(1) blur(4px); /* Add blur effect */
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .stage-container.mode-focus .artifact-card.focused {
@@ -407,17 +421,57 @@ html, body {
 /* === Generating State === */
 .artifact-card.generating {
     border-color: rgba(179, 157, 219, 0.4);
-    box-shadow: 0 0 30px -5px rgba(126, 87, 194, 0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 0 15px -5px rgba(126, 87, 194, 0.1);
+    transition: all 0.5s ease;
+    animation: borderBreathe 2.5s infinite ease-in-out;
+}
+
+@keyframes borderBreathe {
+    0% { 
+        border-color: rgba(179, 157, 219, 0.3); 
+        box-shadow: 0 0 15px -5px rgba(126, 87, 194, 0.1); 
+    }
+    50% { 
+        border-color: rgba(179, 157, 219, 0.8); 
+        box-shadow: 0 0 30px -5px rgba(126, 87, 194, 0.35), inset 0 0 15px rgba(126, 87, 194, 0.05); 
+    }
+    100% { 
+        border-color: rgba(179, 157, 219, 0.3); 
+        box-shadow: 0 0 15px -5px rgba(126, 87, 194, 0.1); 
+    }
 }
 
 .generating-overlay {
     position: absolute; inset: 0;
     z-index: 20;
-    background: rgba(15, 5, 25, 0.96);
+    background: rgba(15, 5, 25, 0.95);
     overflow: hidden;
     display: flex;
     flex-direction: column;
+}
+
+/* Shimmer Effect */
+.generating-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        110deg,
+        transparent 35%,
+        rgba(179, 157, 219, 0.05) 45%,
+        rgba(179, 157, 219, 0.15) 50%,
+        rgba(179, 157, 219, 0.05) 55%,
+        transparent 65%
+    );
+    background-size: 200% 100%;
+    animation: cardShimmer 3s infinite linear;
+    pointer-events: none;
+    z-index: 22;
+}
+
+@keyframes cardShimmer {
+    0% { background-position: 150% 0; }
+    100% { background-position: -50% 0; }
 }
 
 .generating-loader {
@@ -426,38 +480,41 @@ html, body {
     gap: 10px;
     padding: 20px;
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: 400;
+    font-style: italic;
     border-bottom: 1px solid rgba(255,255,255,0.05);
     background: rgba(255,255,255,0.02);
 }
 
 .generating-loader .spin-icon {
     font-size: 1.2rem;
-    animation: spin 0.6s linear infinite; /* Faster spin for fast feel */
-    opacity: 0.9;
+    animation: smoothSpin 2s linear infinite; /* Slower, smoother spin */
+    opacity: 0.8;
     color: #b388ff;
 }
 
+@keyframes smoothSpin { to { transform: rotate(360deg); } }
+
 .generating-text {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--text-secondary);
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
 }
 
 .scanline {
     position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, #b388ff, transparent);
-    opacity: 0.8;
-    animation: scan 1.5s linear infinite;
+    top: 0; left: 0; right: 0; 
+    height: 40%; /* Taller for a softer wash */
+    background: linear-gradient(to bottom, transparent, rgba(179, 157, 219, 0.05) 50%, rgba(179, 157, 219, 0.15) 90%, transparent 100%);
+    opacity: 0.5;
+    animation: softScan 3.5s linear infinite; /* Slower scan */
     z-index: 21;
+    pointer-events: none;
 }
 
-@keyframes scan {
-    0% { top: 0; opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { top: 100%; opacity: 0; }
+@keyframes softScan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(350%); } 
 }
 
 .code-stream-preview {
@@ -467,13 +524,15 @@ html, body {
     color: #b388ff; /* Matrix purple */
     font-family: 'Roboto Mono', monospace;
     font-size: 11px;
-    line-height: 1.5;
+    line-height: 1.6;
     white-space: pre-wrap; 
     word-break: break-all;
     overflow-y: auto;
-    opacity: 0.9;
+    opacity: 0.6; /* Subtler opacity */
+    filter: blur(0.3px); /* Very slight blur to make it texture-like */
+    transition: opacity 0.5s ease;
     /* Create a fade out at the top to indicate log history */
-    mask-image: linear-gradient(to bottom, transparent, black 10%); 
+    mask-image: linear-gradient(to bottom, transparent, black 15%); 
 }
 
 /* === Network Status Indicator === */
@@ -538,7 +597,8 @@ html, body {
     color: #311b92;
     padding: 12px 24px;
     border-radius: 99px;
-    font-weight: 600;
+    font-weight: 500;
+    font-style: italic;
     font-size: 0.9rem;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     z-index: 2000;
@@ -598,7 +658,9 @@ html, body {
     display: flex;
     align-items: center;
     gap: 12px;
-    right: 60px; 
+    right: 60px;
+    font-style: italic;
+    font-weight: 300;
 }
 
 .placeholder-text { text-overflow: ellipsis; overflow: hidden; }
@@ -606,6 +668,7 @@ html, body {
     font-size: 0.7rem; text-transform: uppercase;
     background: rgba(255,255,255,0.1); padding: 2px 6px;
     border-radius: 4px; font-weight: 600; opacity: 0.6;
+    font-style: normal;
 }
 
 @keyframes placeholderSlideUp {
@@ -634,7 +697,10 @@ html, body {
 
 .input-wrapper input {
     flex: 1; background: transparent; border: none; outline: none;
-    color: var(--text-primary); font-size: 1rem; font-family: var(--font-sans);
+    color: var(--text-primary); 
+    font-size: 1.1rem; 
+    font-family: var(--font-sans);
+    font-style: italic;
 }
 .input-wrapper input::placeholder { color: transparent; } 
 
@@ -648,10 +714,11 @@ html, body {
     color: var(--text-secondary);
     overflow: hidden;
     padding-right: 8px; /* Extra breathing room for the spinner */
+    font-style: italic;
 }
 
 .generating-prompt-text {
-    font-size: 0.95rem;
+    font-size: 1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -689,23 +756,26 @@ html, body {
 }
 .action-bar.visible { opacity: 1; transform: translateY(0); }
 .active-prompt-label {
-    color: var(--text-secondary); font-size: 0.9rem;
-    background: rgba(20, 10, 40, 0.7); padding: 6px 12px; border-radius: 20px;
+    color: var(--text-secondary); font-size: 1rem;
+    background: rgba(20, 10, 40, 0.7); padding: 6px 16px; border-radius: 20px;
     max-width: 80vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     backdrop-filter: blur(8px); pointer-events: auto;
+    font-style: italic;
+    font-weight: 300;
 }
 .action-buttons { display: flex; gap: 12px; pointer-events: auto; }
 .action-buttons button {
     background: var(--input-bg);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 8px 16px; border-radius: 999px;
-    font-size: 0.85rem; font-weight: 500;
+    padding: 8px 20px; border-radius: 999px;
+    font-size: 0.9rem; font-weight: 400; font-style: italic;
     display: flex; align-items: center; gap: 8px;
     cursor: pointer; transition: all 0.2s ease;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-family: var(--font-sans);
 }
 .action-buttons button:hover {
     background: rgba(255,255,255,0.1);
@@ -747,7 +817,7 @@ html, body {
     border-bottom: 1px solid var(--glass-border);
 }
 .drawer-header h2 { 
-    margin: 0; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; color: var(--text-primary); 
+    margin: 0; font-size: 1.5rem; font-weight: 300; font-style: italic; letter-spacing: -0.02em; color: var(--text-primary); 
 }
 .close-button {
     background: rgba(255,255,255,0.1); border: none; color: var(--text-secondary); 
@@ -778,8 +848,8 @@ html, body {
 /* Enhanced Responsive Sexy Card Preview */
 .sexy-preview {
     width: 100%;
-    /* Use aspect ratio to maintain 16:10 shape regardless of container width */
-    aspect-ratio: 16 / 10;
+    /* Changed from 16/10 to 4/3 for better vertical visibility on all devices */
+    aspect-ratio: 4 / 3;
     background: #0f0518;
     position: relative;
     overflow: hidden;
@@ -801,10 +871,11 @@ html, body {
 }
 .sexy-label {
     padding: 8px 12px;
-    text-align: center; font-weight: 500; color: var(--text-primary);
+    text-align: center; font-weight: 400; color: var(--text-primary);
     background: rgba(0,0,0,0.2);
     border-top: 1px solid var(--glass-border);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    font-style: italic;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -821,7 +892,7 @@ html, body {
 }
 .loading-state {
     color: var(--text-secondary); display: flex; align-items: center; gap: 12px; 
-    justify-content: center; padding: 60px 0; font-size: 1.1rem;
+    justify-content: center; padding: 60px 0; font-size: 1.2rem; font-style: italic;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -860,7 +931,7 @@ html, body {
     }
 
     .empty-content h1 {
-        font-size: 3.5rem;
+        font-size: 4rem;
     }
 
     /* Adjust focused state for mobile to avoid cutoffs and center more cleanly */
@@ -898,5 +969,18 @@ html, body {
     .drawer-content {
         max-width: 100%;
         width: 100%;
+    }
+}
+
+/* Very small screens: Single column variations for better visibility */
+@media (max-width: 600px) {
+    .sexy-grid {
+        grid-template-columns: 1fr;
+    }
+    .sexy-preview iframe {
+        /* Optimize scale for 1-column mobile view to behave like a mini-desktop viewport */
+        width: 250%; /* Virtual width ~800-900px */
+        height: 250%;
+        transform: scale(0.4);
     }
 }

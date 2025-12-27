@@ -574,13 +574,13 @@ Return ONLY RAW HTML. No markdown fences.
 
         <div className="immersive-app">
             <ConstellationBackground 
-                opacity={0.8}
+                opacity={focusedArtifactIndex !== null ? 0.2 : 0.8}
             />
 
             <div className={`stage-container ${focusedArtifactIndex !== null ? 'mode-focus' : 'mode-split'}`}>
                  <div className={`empty-state ${hasStarted ? 'fade-out' : ''}`}>
                      <div className="empty-content">
-                         <h1>PwnZ UI</h1>
+                         <h1>n̵̒̂Z̨̙͍̊ͨͩͮ̾̈́ṳ̵̧̡͖ͯ̂̓ʍ̢̱͍͋ͬ͟d͙͓̬ͣı̡̰̤͌̀</h1>
                          <p>Kreativní tvorba UI bleskovou rychlostí</p>
                          <button className="surprise-button" onClick={handleSurpriseMe} disabled={isLoading}>
                              <SparklesIcon /> Překvap mě
