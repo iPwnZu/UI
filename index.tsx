@@ -16,6 +16,7 @@ import { generateId } from './utils';
 import DottedGlowBackground from './components/DottedGlowBackground';
 import ArtifactCard from './components/ArtifactCard';
 import SideDrawer from './components/SideDrawer';
+import Toast from './components/Toast';
 import { 
     ThinkingIcon, 
     CodeIcon, 
@@ -24,8 +25,22 @@ import {
     ArrowRightIcon, 
     ArrowUpIcon, 
     GridIcon,
-    DownloadIcon
+    DownloadIcon,
+    ShareIcon
 } from './components/Icons';
+
+// --- Network Status Component ---
+const NetworkStatus = ({ isBusy }: { isBusy: boolean }) => {
+    return (
+        <div className={`network-status ${isBusy ? 'active' : 'idle'}`}>
+            <div className={`status-dot ${isBusy ? 'connected' : ''}`}></div>
+            <span className="status-text">
+                {isBusy ? 'SOCKET: LIVE' : 'SOCKET: IDLE'}
+            </span>
+            {isBusy && <span className="ping-value">12ms</span>}
+        </div>
+    );
+};
 
 function App() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -37,6 +52,8 @@ function App() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholders, setPlaceholders] = useState<string[]>(INITIAL_PLACEHOLDERS);
   
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const [drawerState, setDrawerState] = useState<{
       isOpen: boolean;
       mode: 'code' | 'variations' | null;
@@ -107,6 +124,10 @@ function App() {
     setInputValue(event.target.value);
   };
 
+  const showToast = (msg: string) => {
+      setToastMessage(msg);
+  };
+
   const parseJsonStream = async function* (responseStream: AsyncGenerator<{ text: string }>) {
       let buffer = '';
       for await (const chunk of responseStream) {
@@ -175,6 +196,7 @@ For EACH variation:
 - Rewrite the prompt to fully adopt that metaphor's visual language.
 - Generate high-fidelity HTML/CSS. 
 - **CRITICAL**: Ensure all visible text inside the generated UI is in Czech Language.
+- **OPTIMIZATION**: Write efficient, minimized CSS. Use system fonts where possible.
 
 Required JSON Output Format (stream ONE object per line):
 \`{ "name": "Persona Name", "html": "..." }\`
@@ -218,15 +240,20 @@ Required JSON Output Format (stream ONE object per line):
           setDrawerState({ isOpen: true, mode: 'code', title: 'Zdrojový kód', data: artifact.html });
       }
   };
+
+  const prepareArtifactHtml = (artifact: Artifact) => {
+      let content = artifact.html;
+      if (!content.includes('<!DOCTYPE html>') && !content.includes('<html')) {
+          content = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>PwnZ UI Export - ${artifact.styleName}</title>\n</head>\n<body style="margin:0; min-height:100vh;">\n${content}\n</body>\n</html>`;
+      }
+      return content;
+  };
   
   const handleDownload = () => {
       const currentSession = sessions[currentSessionIndex];
       if (currentSession && focusedArtifactIndex !== null) {
           const artifact = currentSession.artifacts[focusedArtifactIndex];
-          let content = artifact.html;
-          if (!content.includes('<!DOCTYPE html>') && !content.includes('<html')) {
-              content = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>PwnZ UI Export - ${artifact.styleName}</title>\n</head>\n<body style="margin:0; min-height:100vh;">\n${content}\n</body>\n</html>`;
-          }
+          const content = prepareArtifactHtml(artifact);
           const blob = new Blob([content], { type: 'text/html' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -236,6 +263,39 @@ Required JSON Output Format (stream ONE object per line):
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
+          showToast("Soubor stažen!");
+      }
+  };
+
+  const handleShare = async () => {
+      const currentSession = sessions[currentSessionIndex];
+      if (!currentSession || focusedArtifactIndex === null) return;
+      const artifact = currentSession.artifacts[focusedArtifactIndex];
+      
+      const content = prepareArtifactHtml(artifact);
+      const filename = `pwnz-artifact-${artifact.id}.html`;
+      const file = new File([content], filename, { type: 'text/html' });
+
+      // Try native share with file
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+              await navigator.share({
+                  files: [file],
+                  title: 'PwnZ UI Artifact',
+                  text: `Vytvořeno v PwnZ UI: "${currentSession.prompt}"`,
+              });
+              return;
+          } catch (e) {
+              console.log('Share cancelled or failed', e);
+          }
+      }
+
+      // Fallback: Copy to clipboard
+      try {
+          await navigator.clipboard.writeText(content);
+          showToast("Kód zkopírován do schránky!");
+      } catch (e) {
+          showToast("Nepodařilo se sdílet.");
       }
   };
 
@@ -336,11 +396,12 @@ You are Flash UI. Create a stunning, high-fidelity UI component for: "${trimmedI
 
 **VISUAL EXECUTION RULES:**
 1. **Materiality**: Use the specified metaphor to drive every CSS choice. (e.g. if Risograph, use \`feTurbulence\` for grain and \`mix-blend-mode: multiply\` for ink layering).
-2. **Typography**: Use high-quality web fonts. Pair a bold sans-serif with a refined monospace for data.
-3. **Motion**: Include subtle, high-performance CSS/JS animations (hover transitions, entry reveals).
+2. **Typography**: Use system fonts (San Francisco, Inter, Segoe UI) for maximum performance, or embed minimal CSS. Avoid heavy external imports.
+3. **Motion**: Use hardware-accelerated CSS properties (transform, opacity) for animations.
 4. **IP SAFEGUARD**: No artist names or trademarks. 
 5. **Layout**: Be bold with negative space and hierarchy. Avoid generic cards.
 6. **Language**: All visible text content inside the UI component must be in **Czech Language**.
+7. **Code Efficiency**: Write concise, modern CSS. Avoid redundant rules.
 
 Return ONLY RAW HTML. No markdown fences.
           `.trim();
@@ -455,6 +516,12 @@ Return ONLY RAW HTML. No markdown fences.
 
   return (
     <>
+        <NetworkStatus isBusy={isLoading} />
+        
+        {toastMessage && (
+            <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+        )}
+
         <a href="https://topwnz.com/" target="_blank" rel="noreferrer" className={`creator-credit ${hasStarted ? 'hide-on-mobile' : ''}`}>
             topwnz.com
         </a>
@@ -559,10 +626,13 @@ Return ONLY RAW HTML. No markdown fences.
                         <SparklesIcon /> Varianty
                     </button>
                     <button onClick={handleShowCode}>
-                        <CodeIcon /> Zdrojový kód
+                        <CodeIcon /> Kód
+                    </button>
+                    <button onClick={handleShare} disabled={isLoading}>
+                        <ShareIcon /> Sdílet
                     </button>
                     <button onClick={handleDownload} disabled={isLoading}>
-                        <DownloadIcon /> Exportovat
+                        <DownloadIcon /> Export
                     </button>
                  </div>
             </div>

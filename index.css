@@ -1,6 +1,4 @@
 /* index.css - Immersive "Radical" Redesign */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
 
 :root {
     --app-bg: #09090b; /* Deep dark background */
@@ -15,6 +13,7 @@
     --glass-border: rgba(255, 255, 255, 0.1);
 
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-mono: 'Roboto Mono', monospace;
 }
 
 html, body {
@@ -262,6 +261,27 @@ html, body {
     pointer-events: auto; /* Re-enable pointer events for the cards */
 }
 
+/* Click Feedback Effect (Ripple/Flash) */
+.artifact-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+    opacity: 0;
+    z-index: 50;
+    pointer-events: none;
+    transform: scale(0.5);
+}
+
+.artifact-card.clicked::after {
+    animation: clickRipple 0.4s ease-out;
+}
+
+@keyframes clickRipple {
+    0% { opacity: 1; transform: scale(0.5); }
+    100% { opacity: 0; transform: scale(1.5); }
+}
+
 /* Header in Split Mode */
 .artifact-header {
     padding: 12px 16px;
@@ -286,11 +306,19 @@ html, body {
 .artifact-card-inner {
     flex: 1; position: relative; background: #fff;
     width: 100%; height: 100%;
+    /* Create a stacking context */
+    isolation: isolate; 
 }
 
 .artifact-iframe {
     width: 100%; height: 100%; border: none; display: block;
     pointer-events: none; /* Interact only in Focus mode */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.artifact-iframe.loaded {
+    opacity: 1;
 }
 
 /* === Focus Mode Styles === */
@@ -366,21 +394,23 @@ html, body {
 
 .generating-loader .spin-icon {
     font-size: 1.2rem;
-    animation: spin 1s linear infinite;
-    opacity: 0.8;
+    animation: spin 0.6s linear infinite; /* Faster spin for fast feel */
+    opacity: 0.9;
+    color: #4ade80;
 }
 
 .generating-text {
     font-size: 0.9rem;
     color: var(--text-secondary);
+    font-family: var(--font-mono);
 }
 
 .scanline {
     position: absolute;
     top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
-    opacity: 0.5;
-    animation: scan 2s linear infinite;
+    background: linear-gradient(90deg, transparent, #4ade80, transparent);
+    opacity: 0.8;
+    animation: scan 1.5s linear infinite;
     z-index: 21;
 }
 
@@ -405,6 +435,82 @@ html, body {
     opacity: 0.9;
     /* Create a fade out at the top to indicate log history */
     mask-image: linear-gradient(to bottom, transparent, black 10%); 
+}
+
+/* === Network Status Indicator === */
+.network-status {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 102;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.network-status.idle { opacity: 0; }
+
+.status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #666;
+}
+
+.status-dot.connected {
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80;
+    animation: pulseDot 2s infinite;
+}
+
+.status-text {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.ping-value {
+    color: #666;
+    margin-left: 4px;
+}
+
+@keyframes pulseDot {
+    0% { opacity: 0.6; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0.6; transform: scale(0.9); }
+}
+
+/* === Toast Notification === */
+.toast-notification {
+    position: fixed;
+    bottom: 160px; /* Position above action bar */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 2000;
+    animation: toastPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+@keyframes toastPop {
+    0% { transform: translateX(-50%) scale(0.8) translateY(20px); opacity: 0; }
+    100% { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; }
 }
 
 /* === Floating Input === */
@@ -626,14 +732,28 @@ html, body {
     border-color: rgba(255,255,255,0.25);
     box-shadow: 0 15px 30px -10px rgba(0,0,0,0.5);
 }
+/* Enhanced Responsive Sexy Card Preview */
 .sexy-preview {
-    height: 220px; background: #000; position: relative;
+    width: 100%;
+    /* Use aspect ratio to maintain 16:10 shape regardless of container width */
+    aspect-ratio: 16 / 10;
+    background: #000;
+    position: relative;
     overflow: hidden;
 }
 .sexy-preview iframe {
-    width: 400%; height: 400%; border: none; pointer-events: none;
+    /* 
+       Logic: We want to simulate a screen 4x larger than the card's width.
+       Scale 0.25 brings it back to fit exactly 100% of the container.
+       This ensures the inner content renders like a desktop view (~1400-1600px).
+    */
+    width: 400%; 
+    height: 400%; 
+    border: none; 
+    pointer-events: none;
     transform: scale(0.25);
     transform-origin: top left;
+    background-color: #fff; /* Ensure contrast if iframe content is transparent */
 }
 .sexy-label {
     padding: 16px;
@@ -721,13 +841,12 @@ html, body {
         bottom: 20px;
     }
 
-    /* Scaling previews in side drawer on mobile */
-    .sexy-preview {
-        height: 160px;
-    }
-    .sexy-preview iframe {
-        width: 1000px;
-        height: 640px;
-        transform: scale(0.16); 
+    /* 
+       On mobile, make sure drawer utilizes width well. 
+       The percentage-based iframe scaling above handles the rest.
+    */
+    .drawer-content {
+        max-width: 100%;
+        width: 100%;
     }
 }
